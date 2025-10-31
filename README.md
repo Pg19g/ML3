@@ -22,13 +22,18 @@ A production-grade, point-in-time (PIT) market data pipeline and ML experimentat
 
 ### Installation
 
+**For Mac M3 Pro users**: See [INSTALL_MAC_M3.md](INSTALL_MAC_M3.md) for Mac-specific instructions.
+
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/Pg19g/ML3.git
 cd ML3
 
 # Install dependencies using pip
 pip install -r requirements.txt
+
+# For Mac M3 Pro (Apple Silicon)
+pip install -r requirements-mac-m3.txt
 
 # Or using poetry
 poetry install
