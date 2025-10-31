@@ -1,0 +1,47 @@
+# Label configuration
+
+# Forward return horizons
+labels:
+  - name: ret_1d_fwd
+    type: forward_return
+    horizon: 1
+    enabled: true
+    description: "1-day forward return"
+    
+  - name: ret_5d_fwd
+    type: forward_return
+    horizon: 5
+    enabled: true
+    description: "5-day forward return"
+    
+  - name: ret_21d_fwd
+    type: forward_return
+    horizon: 21
+    enabled: true
+    description: "21-day forward return"
+    
+  - name: ret_63d_fwd
+    type: forward_return
+    horizon: 63
+    enabled: false
+    description: "63-day forward return"
+
+# Classification labels (optional)
+classification:
+  - name: up_1d
+    type: binary_direction
+    horizon: 1
+    threshold: 0.0
+    enabled: false
+    
+  - name: up_5d
+    type: binary_direction
+    horizon: 5
+    threshold: 0.0
+    enabled: false
+
+# Label validation
+validation:
+  check_for_leakage: true
+  min_observations: 100
+  max_missing_pct: 0.5

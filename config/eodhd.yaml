@@ -1,0 +1,26 @@
+# EODHD API Configuration
+base_url: "https://eodhd.com/api"
+api_key_env: "EODHD_API_KEY"
+
+# Rate limiting
+rate_limit:
+  calls_per_second: 10
+  calls_per_minute: 100
+  retry_attempts: 3
+  retry_backoff_factor: 2
+  retry_max_wait: 60
+
+# Endpoints
+endpoints:
+  eod_prices: "/eod/{symbol}"
+  fundamentals: "/fundamentals/{symbol}"
+  bulk_eod: "/eod-bulk-last-day/{exchange}"
+  
+# Request parameters
+request_params:
+  fmt: "json"
+  adjusted: "true"
+  
+# Data quality
+min_price: 0.01
+max_price: 1000000

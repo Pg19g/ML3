@@ -1,0 +1,60 @@
+# Backtesting configuration
+
+# Trading strategy
+strategy:
+  type: "rank_based"  # rank_based, threshold, or custom
+  
+  # Rank-based strategy parameters
+  long_top_pct: 0.1  # Long top 10% (decile)
+  short_bottom_pct: 0.0  # 0 = long-only, 0.1 = long-short
+  
+  # Position sizing
+  weighting: "equal"  # equal, value, or inverse_volatility
+  max_position_size: 0.1  # Maximum 10% per position
+  
+  # Rebalancing
+  rebalance_frequency: "weekly"  # daily, weekly, monthly
+  rebalance_day: "Monday"  # For weekly/monthly
+
+# Transaction costs
+costs:
+  commission_pct: 0.001  # 0.1% per trade (10 bps)
+  slippage_pct: 0.0005   # 0.05% slippage (5 bps)
+  min_commission: 1.0    # Minimum $1 per trade
+  
+# Risk management
+risk:
+  max_leverage: 1.0
+  max_drawdown_stop: null  # null = no stop, or e.g., 0.2 for 20%
+  
+# Backtest period
+period:
+  start: null  # null = use all available data
+  end: null
+  train_test_split: 0.7  # 70% train, 30% test
+
+# Performance metrics
+metrics:
+  - total_return
+  - cagr
+  - sharpe_ratio
+  - sortino_ratio
+  - max_drawdown
+  - calmar_ratio
+  - win_rate
+  - profit_factor
+  - avg_turnover
+  - avg_holding_period
+
+# Benchmark
+benchmark:
+  symbol: "SPY.US"
+  enabled: true
+  
+# Output
+output:
+  save_trades: true
+  save_positions: true
+  save_equity_curve: true
+  save_metrics: true
+  plot_results: true

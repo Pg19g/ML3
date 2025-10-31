@@ -1,0 +1,94 @@
+# Training configuration
+
+# Model types
+models:
+  lightgbm:
+    enabled: true
+    params:
+      objective: "regression"
+      metric: "rmse"
+      boosting_type: "gbdt"
+      num_leaves: 31
+      learning_rate: 0.05
+      feature_fraction: 0.8
+      bagging_fraction: 0.8
+      bagging_freq: 5
+      max_depth: -1
+      min_child_samples: 20
+      verbose: -1
+      
+  xgboost:
+    enabled: true
+    params:
+      objective: "reg:squarederror"
+      eval_metric: "rmse"
+      booster: "gbtree"
+      max_depth: 6
+      learning_rate: 0.05
+      subsample: 0.8
+      colsample_bytree: 0.8
+      min_child_weight: 1
+      gamma: 0
+      verbosity: 0
+
+# Cross-validation scheme
+cv:
+  method: "purged_kfold"
+  n_splits: 5
+  embargo_days: 21  # Trading days
+  test_size: 0.2
+  
+# Optuna hyperparameter tuning
+optuna:
+  enabled: false
+  n_trials: 50
+  timeout: 3600  # seconds
+  sampler: "TPE"
+  pruner: "MedianPruner"
+  
+  # Search space
+  search_space:
+    lightgbm:
+      num_leaves: [20, 100]
+      learning_rate: [0.01, 0.1]
+      feature_fraction: [0.6, 1.0]
+      bagging_fraction: [0.6, 1.0]
+      min_child_samples: [10, 50]
+      
+    xgboost:
+      max_depth: [3, 10]
+      learning_rate: [0.01, 0.1]
+      subsample: [0.6, 1.0]
+      colsample_bytree: [0.6, 1.0]
+      min_child_weight: [1, 10]
+
+# Evaluation metrics
+metrics:
+  regression:
+    - ic  # Information Coefficient (Pearson correlation)
+    - rank_ic  # Rank IC (Spearman correlation)
+    - mse
+    - mae
+    - r2
+  
+  ranking:
+    - top_decile_return
+    - bottom_decile_return
+    - long_short_spread
+    
+# Feature importance
+feature_importance:
+  methods:
+    - gain
+    - split
+    - shap
+  top_n: 30
+
+# Model persistence
+persistence:
+  save_native: true
+  save_onnx: true
+  save_metadata: true
+  
+# Random seed for reproducibility
+random_seed: 42

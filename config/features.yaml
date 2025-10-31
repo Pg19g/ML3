@@ -1,0 +1,171 @@
+# Feature engineering configuration
+
+# Technical features (computed from prices)
+technical:
+  # Returns
+  - name: ret_1d
+    type: return
+    window: 1
+    enabled: true
+    
+  - name: ret_5d
+    type: return
+    window: 5
+    enabled: true
+    
+  - name: ret_21d
+    type: return
+    window: 21
+    enabled: true
+    
+  # Momentum
+  - name: mom_21d
+    type: momentum
+    window: 21
+    enabled: true
+    
+  - name: mom_63d
+    type: momentum
+    window: 63
+    enabled: true
+    
+  - name: mom_126d
+    type: momentum
+    window: 126
+    enabled: true
+    
+  # Volatility
+  - name: vol_20d
+    type: volatility
+    window: 20
+    enabled: true
+    
+  - name: vol_63d
+    type: volatility
+    window: 63
+    enabled: true
+    
+  # Technical indicators
+  - name: rsi_14
+    type: rsi
+    window: 14
+    enabled: true
+    
+  - name: atr_14
+    type: atr
+    window: 14
+    enabled: true
+    
+  # Market-relative
+  - name: beta_252
+    type: beta
+    window: 252
+    benchmark: "SPY.US"
+    enabled: true
+    
+  # Volume
+  - name: turnover_20d
+    type: turnover
+    window: 20
+    enabled: true
+    
+  # Higher moments
+  - name: skew_63d
+    type: skewness
+    window: 63
+    enabled: true
+    
+  - name: kurt_63d
+    type: kurtosis
+    window: 63
+    enabled: true
+
+# Fundamental features (computed from fundamentals)
+fundamental:
+  # Profitability
+  - name: net_margin
+    type: ratio
+    numerator: "NetIncome"
+    denominator: "TotalRevenue"
+    enabled: true
+    
+  - name: gross_margin
+    type: ratio
+    numerator: "GrossProfit"
+    denominator: "TotalRevenue"
+    enabled: true
+    
+  - name: roe
+    type: ratio
+    numerator: "NetIncome"
+    denominator: "TotalStockholdersEquity"
+    enabled: true
+    
+  - name: roa
+    type: ratio
+    numerator: "NetIncome"
+    denominator: "TotalAssets"
+    enabled: true
+    
+  # Leverage
+  - name: debt_to_equity
+    type: ratio
+    numerator: "TotalDebt"
+    denominator: "TotalStockholdersEquity"
+    enabled: true
+    
+  - name: debt_to_assets
+    type: ratio
+    numerator: "TotalDebt"
+    denominator: "TotalAssets"
+    enabled: true
+    
+  # Liquidity
+  - name: current_ratio
+    type: ratio
+    numerator: "TotalCurrentAssets"
+    denominator: "TotalCurrentLiabilities"
+    enabled: true
+    
+  - name: quick_ratio
+    type: ratio
+    numerator: "CashAndCashEquivalents"
+    denominator: "TotalCurrentLiabilities"
+    enabled: true
+    
+  # Efficiency
+  - name: asset_turnover
+    type: ratio
+    numerator: "TotalRevenue"
+    denominator: "TotalAssets"
+    enabled: true
+    
+  # Cash flow
+  - name: fcf_yield
+    type: ratio
+    numerator: "FreeCashFlow"
+    denominator: "MarketCap"
+    enabled: true
+    
+  - name: capex_to_sales
+    type: ratio
+    numerator: "CapitalExpenditures"
+    denominator: "TotalRevenue"
+    enabled: true
+
+# Feature preprocessing
+preprocessing:
+  # Cross-sectional standardization
+  standardize_cross_sectional: true
+  standardize_by_sector: false  # Set to true if sector data available
+  
+  # Missing value handling
+  fill_method: "forward"  # forward, mean, median, or null
+  max_fill_periods: 5
+  
+  # Outlier handling
+  winsorize: true
+  winsorize_limits: [0.01, 0.99]  # 1st and 99th percentiles
+  
+# Feature shift (to prevent leakage)
+shift_technical_features: 1  # Shift by 1 trading day

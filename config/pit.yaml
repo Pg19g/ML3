@@ -1,0 +1,21 @@
+# Point-in-Time (PIT) configuration
+# Controls how fundamentals become available to prevent look-ahead bias
+
+# Lag days for fundamentals availability
+q_lag_days: 60   # Quarterly reports: 60 days after period end if no filing_date
+y_lag_days: 90   # Annual reports: 90 days after period end if no filing_date
+
+# Additional trading lag after as_of_date calculation
+extra_trading_lag: 2  # Trading days to wait after as_of_date
+
+# Staleness threshold
+stale_max_days: 540  # Mark fundamentals as stale after 540 days (~18 months)
+
+# Trading calendar
+calendar: "NYSE"  # pandas_market_calendars calendar name
+
+# PIT integrity checks
+checks:
+  enable_leakage_detection: true
+  max_future_leak_tolerance_days: 0  # Zero tolerance for future leakage
+  warn_on_stale_threshold: 0.3  # Warn if >30% of data is stale

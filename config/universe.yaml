@@ -1,0 +1,41 @@
+# Universe configuration
+# Define the universe of symbols to track
+
+# Static universe list (example: S&P 500 subset)
+symbols:
+  - AAPL.US
+  - MSFT.US
+  - GOOGL.US
+  - AMZN.US
+  - NVDA.US
+  - META.US
+  - TSLA.US
+  - BRK-B.US
+  - JPM.US
+  - V.US
+  - JNJ.US
+  - WMT.US
+  - PG.US
+  - MA.US
+  - HD.US
+  - CVX.US
+  - MRK.US
+  - ABBV.US
+  - KO.US
+  - PEP.US
+
+# Date range for initial data load
+date_range:
+  start: "2020-01-01"
+  end: null  # null = today
+
+# Universe selection rules (optional, for dynamic universe)
+rules:
+  min_market_cap: 1000000000  # $1B
+  min_avg_volume: 100000       # shares per day
+  exchanges:
+    - US
+    - NASDAQ
+  
+# Include delisted symbols to reduce survivorship bias
+include_delisted: true
