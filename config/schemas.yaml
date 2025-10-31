@@ -1,0 +1,344 @@
+# Data Schemas for ML3 Pipeline
+# Defines canonical schemas for all data artifacts
+
+prices_daily:
+  description: "End-of-day price data from EODHD, partitioned by year"
+  partition_by: "year"
+  primary_key: ["symbol", "date"]
+  
+  columns:
+    symbol:
+      type: "string"
+      nullable: false
+      description: "Ticker symbol with exchange suffix (e.g., AAPL.US)"
+    
+    date:
+      type: "date"
+      nullable: false
+      description: "Trading date (must be a valid trading day)"
+      constraints:
+        - "Must be a trading day per NYSE calendar"
+        - "No duplicates for (symbol, date)"
+    
+    open:
+      type: "float64"
+      nullable: true
+      description: "Opening price"
+      constraints:
+        - "Must be > 0 if not null"
+    
+    high:
+      type: "float64"
+      nullable: true
+      description: "Highest price during the day"
+      constraints:
+        - "Must be >= open and >= close if not null"
+    
+    low:
+      type: "float64"
+      nullable: true
+      description: "Lowest price during the day"
+      constraints:
+        - "Must be <= open and <= close if not null"
+    
+    close:
+      type: "float64"
+      nullable: true
+      description: "Closing price (unadjusted)"
+      constraints:
+        - "Must be > 0 if not null"
+    
+    adj_close:
+      type: "float64"
+      nullable: false
+      description: "Adjusted closing price (splits and dividends)"
+      constraints:
+        - "Must be > 0"
+    
+    volume:
+      type: "int64"
+      nullable: true
+      description: "Trading volume"
+      constraints:
+        - "Must be >= 0 if not null"
+    
+    currency:
+      type: "string"
+      nullable: true
+      description: "Currency code (e.g., USD, EUR)"
+    
+    dividends:
+      type: "float64"
+      nullable: true
+      description: "Dividend amount on this date"
+      constraints:
+        - "Must be >= 0 if not null"
+    
+    splits:
+      type: "float64"
+      nullable: true
+      description: "Split ratio (e.g., 2.0 for 2-for-1 split)"
+      constraints:
+        - "Must be > 0 if not null"
+
+fundamentals:
+  description: "Quarterly and annual fundamental data from EODHD"
+  partition_by: null
+  primary_key: ["symbol", "statement_type", "period_end"]
+  
+  columns:
+    symbol:
+      type: "string"
+      nullable: false
+      description: "Ticker symbol with exchange suffix"
+    
+    statement_type:
+      type: "string"
+      nullable: false
+      description: "Type of financial statement"
+      constraints:
+        - "Must be one of: 'quarterly', 'annual'"
+    
+    period_end:
+      type: "date"
+      nullable: false
+      description: "End date of the reporting period"
+    
+    filing_date:
+      type: "date"
+      nullable: true
+      description: "Date when the report was filed (if available)"
+      constraints:
+        - "Must be >= period_end if not null"
+    
+    updated_at:
+      type: "datetime"
+      nullable: true
+      description: "Timestamp when this record was last updated in source"
+    
+    # Financial fields (examples - actual schema has many more)
+    TotalRevenue:
+      type: "float64"
+      nullable: true
+      description: "Total revenue for the period"
+    
+    NetIncome:
+      type: "float64"
+      nullable: true
+      description: "Net income for the period"
+    
+    TotalAssets:
+      type: "float64"
+      nullable: true
+      description: "Total assets at period end"
+    
+    TotalLiabilities:
+      type: "float64"
+      nullable: true
+      description: "Total liabilities at period end"
+    
+    TotalStockholdersEquity:
+      type: "float64"
+      nullable: true
+      description: "Total shareholders' equity"
+    
+    TotalDebt:
+      type: "float64"
+      nullable: true
+      description: "Total debt"
+    
+    CashAndEquivalents:
+      type: "float64"
+      nullable: true
+      description: "Cash and cash equivalents"
+    
+    OperatingCashFlow:
+      type: "float64"
+      nullable: true
+      description: "Cash flow from operations"
+
+pit_daily_panel:
+  description: "Point-in-time daily panel with prices and fundamentals"
+  partition_by: null
+  primary_key: ["symbol", "date"]
+  
+  columns:
+    symbol:
+      type: "string"
+      nullable: false
+      description: "Ticker symbol"
+    
+    date:
+      type: "date"
+      nullable: false
+      description: "Trading date"
+    
+    # Price fields (from prices_daily)
+    adj_close:
+      type: "float64"
+      nullable: false
+      description: "Adjusted closing price"
+    
+    volume:
+      type: "int64"
+      nullable: true
+      description: "Trading volume"
+    
+    # Source timestamps (NEW)
+    source_ts_price:
+      type: "datetime"
+      nullable: false
+      description: "Timestamp of the price data source for this row"
+    
+    source_ts_fund:
+      type: "datetime"
+      nullable: true
+      description: "Timestamp of the fundamental data source (as_of_date)"
+    
+    # PIT metadata
+    valid_from:
+      type: "date"
+      nullable: true
+      description: "Date when fundamental data became available"
+      constraints:
+        - "Must be <= date"
+    
+    valid_to:
+      type: "date"
+      nullable: true
+      description: "Date when fundamental data expires (next report - 1 day)"
+    
+    period_end:
+      type: "date"
+      nullable: true
+      description: "Period end date of the fundamental report"
+    
+    statement_type:
+      type: "string"
+      nullable: true
+      description: "Type of statement (quarterly/annual)"
+    
+    is_stale_fund:
+      type: "boolean"
+      nullable: false
+      description: "Flag indicating if fundamental data is stale"
+      default: false
+    
+    # Fundamental fields (as available)
+    # ... (same as fundamentals schema)
+
+features:
+  description: "Engineered features for ML models"
+  partition_by: null
+  primary_key: ["symbol", "date"]
+  
+  columns:
+    symbol:
+      type: "string"
+      nullable: false
+      description: "Ticker symbol"
+    
+    date:
+      type: "date"
+      nullable: false
+      description: "Trading date"
+    
+    # Technical features (examples)
+    ret_1d:
+      type: "float64"
+      nullable: true
+      description: "1-day return (shifted by 1 day)"
+    
+    ret_5d:
+      type: "float64"
+      nullable: true
+      description: "5-day return (shifted by 1 day)"
+    
+    vol_20d:
+      type: "float64"
+      nullable: true
+      description: "20-day volatility (shifted by 1 day)"
+    
+    # Fundamental features (examples)
+    net_margin:
+      type: "float64"
+      nullable: true
+      description: "Net profit margin (NetIncome / TotalRevenue)"
+    
+    roe:
+      type: "float64"
+      nullable: true
+      description: "Return on equity"
+    
+    # Source tracking
+    source_ts_price:
+      type: "datetime"
+      nullable: false
+      description: "Source timestamp for price-based features"
+    
+    source_ts_fund:
+      type: "datetime"
+      nullable: true
+      description: "Source timestamp for fundamental-based features"
+
+labels:
+  description: "Forward-looking labels for ML models"
+  partition_by: null
+  primary_key: ["symbol", "date"]
+  
+  columns:
+    symbol:
+      type: "string"
+      nullable: false
+      description: "Ticker symbol"
+    
+    date:
+      type: "date"
+      nullable: false
+      description: "Trading date (prediction date)"
+    
+    # Forward returns (labels)
+    ret_1d_fwd:
+      type: "float64"
+      nullable: true
+      description: "1-day forward return (negative shift)"
+    
+    ret_5d_fwd:
+      type: "float64"
+      nullable: true
+      description: "5-day forward return (negative shift)"
+    
+    ret_21d_fwd:
+      type: "float64"
+      nullable: true
+      description: "21-day forward return (negative shift)"
+
+# Validation rules
+validation:
+  prices_daily:
+    - "No duplicate (symbol, date) pairs"
+    - "date must be a trading day"
+    - "adj_close > 0"
+    - "volume >= 0 if not null"
+    - "high >= low if both not null"
+  
+  fundamentals:
+    - "No duplicate (symbol, statement_type, period_end) tuples"
+    - "statement_type in ['quarterly', 'annual']"
+    - "filing_date >= period_end if filing_date is not null"
+  
+  pit_daily_panel:
+    - "No duplicate (symbol, date) pairs"
+    - "source_ts_price <= date (no future price data)"
+    - "source_ts_fund <= date if not null (no future fundamental data)"
+    - "valid_from <= date if not null (PIT constraint)"
+    - "max(source_ts_price, source_ts_fund) <= date (overall PIT constraint)"
+  
+  features:
+    - "No duplicate (symbol, date) pairs"
+    - "source_ts_price <= date"
+    - "source_ts_fund <= date if not null"
+  
+  labels:
+    - "No duplicate (symbol, date) pairs"
+    - "Labels are forward-looking (computed via negative shift)"

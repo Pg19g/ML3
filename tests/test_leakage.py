@@ -142,5 +142,48 @@ def test_cross_sectional_leakage():
             assert abs(date_data['feature1'].std() - 1.0) < 0.1
 
 
+def test_source_timestamp_leakage():
+    """Test that source timestamps don't leak into the future."""
+    from datetime import datetime
+    
+    # Create PIT panel with source timestamps
+    df = pd.DataFrame({
+        'date': [datetime(2023, 6, 1), datetime(2023, 6, 2), datetime(2023, 6, 3)],
+        'symbol': ['AAPL'] * 3,
+        'adj_close': [150.0, 151.0, 152.0],
+        'source_ts_price': [
+            datetime(2023, 6, 1, 16, 0),
+            datetime(2023, 6, 2, 16, 0),
+            datetime(2023, 6, 3, 16, 0)
+        ],
+        'source_ts_fund': [
+            datetime(2023, 5, 15),
+            datetime(2023, 5, 15),
+            datetime(2023, 8, 15)  # This would be leakage!
+        ]
+    })
+    
+    # Check price timestamp leakage
+    df['price_ts_date'] = pd.to_datetime(df['source_ts_price']).dt.date
+    df['date_only'] = pd.to_datetime(df['date']).dt.date
+    
+    price_leakage = df['price_ts_date'] > df['date_only']
+    assert not price_leakage.any(), "Price source timestamp leaks into future"
+    
+    # Check fundamental timestamp leakage
+    df['fund_ts_date'] = pd.to_datetime(df['source_ts_fund']).dt.date
+    fund_leakage = df['fund_ts_date'] > df['date_only']
+    
+    # The third row should have leakage
+    assert fund_leakage.iloc[2], "Expected leakage in third row"
+    
+    # Overall check: max(source_ts_price, source_ts_fund) <= date
+    df['max_source_ts'] = df[['price_ts_date', 'fund_ts_date']].max(axis=1)
+    overall_leakage = df['max_source_ts'] > df['date_only']
+    
+    assert overall_leakage.iloc[2], "Expected overall leakage"
+    assert not overall_leakage.iloc[:2].any(), "No leakage expected in first two rows"
+
+
 if __name__ == '__main__':
     pytest.main([__file__])
