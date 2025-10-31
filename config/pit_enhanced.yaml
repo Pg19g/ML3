@@ -1,0 +1,95 @@
+# Enhanced PIT Configuration with Versioning and Precedence
+
+# Lag days for computing as_of_date
+q_lag_days: 60          # Quarterly reports: 60 days after period_end
+y_lag_days: 90          # Annual reports: 90 days after period_end
+
+# Extra trading days to add after rounding to next trading day
+extra_trading_lag: 2    # 2 trading days for processing/dissemination
+
+# Staleness threshold
+stale_max_days: 540     # ~18 months; fundamentals older than this are nulled
+
+# Trading calendar
+calendar: NYSE          # Use NYSE trading calendar
+
+# Quarterly vs Annual Precedence Policy
+# Options:
+#   - quarter_over_annual: Quarterly overrides annual when both exist; fallback to annual when quarterly missing/stale
+#   - both_suffixes: Expose both with _q and _y suffixes; no auto-override
+precedence: quarter_over_annual
+
+# Versioning settings
+enable_versioning: true  # Track restatements/corrections via updated_at
+version_lag_days: 0      # Additional lag for version updates (usually 0)
+
+# Interval join method
+# Options: polars, duckdb
+join_method: polars
+
+# Output paths
+output:
+  fundamentals_intervals: data/pit/fundamentals_intervals.parquet
+  daily_panel: data/pit/daily_panel.parquet
+  
+# Ratio computation settings
+ratios:
+  # Compute ratios at filing level (not daily)
+  compute_at_filing: true
+  
+  # TTM (Trailing Twelve Months) settings
+  ttm:
+    enabled: true
+    periods_required: 4  # Need 4 quarters for TTM
+  
+  # Margin ratios
+  margins:
+    - name: gross_margin
+      numerator: GrossProfit
+      denominator: TotalRevenue
+    - name: operating_margin
+      numerator: OperatingIncome
+      denominator: TotalRevenue
+    - name: net_margin
+      numerator: NetIncome
+      denominator: TotalRevenue
+  
+  # Leverage ratios
+  leverage:
+    - name: debt_to_equity
+      numerator: TotalDebt
+      denominator: TotalStockholdersEquity
+    - name: debt_to_assets
+      numerator: TotalDebt
+      denominator: TotalAssets
+  
+  # Coverage ratios
+  coverage:
+    - name: interest_coverage
+      numerator: OperatingIncome
+      denominator: InterestExpense
+  
+  # Return ratios
+  returns:
+    - name: roe
+      numerator: NetIncome
+      denominator: TotalStockholdersEquity
+    - name: roa
+      numerator: NetIncome
+      denominator: TotalAssets
+    - name: roic
+      numerator: OperatingIncome
+      denominator: InvestedCapital  # TotalAssets - CurrentLiabilities
+  
+  # Accruals
+  accruals:
+    - name: accruals_ratio
+      numerator: NetIncome_minus_OperatingCashFlow
+      denominator: TotalAssets
+
+# Validation settings
+validation:
+  check_pk_uniqueness: true
+  check_temporal_consistency: true
+  check_leakage: true
+  fail_on_violations: true
