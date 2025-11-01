@@ -239,36 +239,45 @@ class EODHDClient:
         """
         rows = []
         
-        # Extract quarterly and annual financials
-        for statement_type in ['Financials']:
-            if statement_type not in fundamentals_data:
+        # Check if Financials exists
+        if 'Financials' not in fundamentals_data:
+            return pd.DataFrame()
+        
+        financials = fundamentals_data['Financials']
+        
+        # Iterate through statement types (Balance_Sheet, Income_Statement, Cash_Flow)
+        for stmt_type in ['Balance_Sheet', 'Income_Statement', 'Cash_Flow']:
+            if stmt_type not in financials:
                 continue
             
-            financials = fundamentals_data[statement_type]
+            statement_data = financials[stmt_type]
             
+            # Iterate through period types (quarterly, yearly)
             for period_type in ['quarterly', 'yearly']:
-                if period_type not in financials:
+                if period_type not in statement_data:
                     continue
                 
-                statements = financials[period_type]
+                periods = statement_data[period_type]
                 
-                for date_key, values in statements.items():
+                # Iterate through each date period
+                for date_key, values in periods.items():
                     if not isinstance(values, dict):
                         continue
                     
                     # Map period_type to standard format
-                    statement_type = 'quarterly' if period_type == 'quarterly' else 'annual'
+                    period_label = 'quarterly' if period_type == 'quarterly' else 'annual'
                     
                     row = {
                         'symbol': symbol,
                         'period_end': date_key,
-                        'statement_type': statement_type,
+                        'statement_type': period_label,
+                        'statement_category': stmt_type,
                         'filing_date': values.get('filing_date', None),
                     }
                     
                     # Add all financial fields
                     for key, value in values.items():
-                        if key != 'filing_date':
+                        if key not in ['filing_date', 'date', 'currency_symbol']:
                             row[key] = value
                     
                     rows.append(row)
