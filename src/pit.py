@@ -114,6 +114,11 @@ class PITProcessor:
             DataFrame with valid_from and valid_to columns
         """
         result = df.copy()
+        
+        # Handle empty DataFrame
+        if result.empty:
+            return result
+        
         result = result.sort_values(['symbol', 'as_of_date']).reset_index(drop=True)
         
         # valid_from is the as_of_date
