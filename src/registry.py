@@ -250,8 +250,15 @@ class ModelRegistry:
         model_type = metadata['model_type']
         
         # Ensure features are in correct order
+        # Filter to only use features that exist in X
         feature_cols = metadata['feature_cols']
-        X_ordered = X[feature_cols]
+        available_features = [col for col in feature_cols if col in X.columns]
+        
+        if len(available_features) < len(feature_cols):
+            missing = [col for col in feature_cols if col not in X.columns]
+            logger.warning(f"Model expects {len(feature_cols)} features but only {len(available_features)} available. Missing: {missing[:5]}...")
+        
+        X_ordered = X[available_features]
         
         # Score
         if model_type == 'lightgbm':
