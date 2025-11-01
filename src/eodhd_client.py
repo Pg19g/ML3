@@ -256,10 +256,13 @@ class EODHDClient:
                     if not isinstance(values, dict):
                         continue
                     
+                    # Map period_type to standard format
+                    statement_type = 'quarterly' if period_type == 'quarterly' else 'annual'
+                    
                     row = {
                         'symbol': symbol,
                         'period_end': date_key,
-                        'statement_type': period_type,
+                        'statement_type': statement_type,
                         'filing_date': values.get('filing_date', None),
                     }
                     
