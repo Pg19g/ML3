@@ -154,6 +154,11 @@ class PITProcessor:
         Returns:
             Joined DataFrame
         """
+        # Handle empty fundamentals - return daily panel as-is
+        if fundamentals.empty:
+            logger.info("No fundamentals to join, returning daily panel only")
+            return daily_panel.copy()
+        
         # Ensure date columns are datetime
         daily_panel['date'] = pd.to_datetime(daily_panel['date'])
         fundamentals['valid_from'] = pd.to_datetime(fundamentals['valid_from'])
