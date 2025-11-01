@@ -44,7 +44,10 @@ cp .env.example .env
 
 # Configure Prefect (IMPORTANT!)
 ./setup_prefect.sh
-# Or manually add to .env: PREFECT_API_URL=ephemeral
+
+# Load environment variables
+source .env
+export $(cat .env | xargs)
 ```
 
 ### Prefect Setup
@@ -57,14 +60,22 @@ cp .env.example .env
 ```
 
 **Manual Setup**:
-Add this to your `.env` file:
+Add these to your `.env` file:
 ```
-PREFECT_API_URL=ephemeral
+PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///~/.prefect/prefect.db
+PREFECT_API_URL=
+PREFECT_LOGGING_LEVEL=INFO
+```
+
+Then load the environment:
+```bash
+source .env
+export $(cat .env | xargs)
 ```
 
 For detailed instructions, see [PREFECT_SETUP.md](PREFECT_SETUP.md).
 
-**Why?** By default, Prefect tries to connect to a server. Ephemeral mode runs flows locally without a server, which is perfect for development.
+**Why?** By default, Prefect tries to connect to a server. Local mode with SQLite runs flows locally without a server, which is perfect for development.
 
 ### Basic Usage
 

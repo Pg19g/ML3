@@ -1,25 +1,25 @@
 #!/bin/bash
-# Setup script to configure Prefect for ephemeral mode
+# Setup script to configure Prefect for local execution (no server required)
 
-echo "Configuring Prefect for ephemeral mode (no server required)..."
+echo "Configuring Prefect for local execution (no server required)..."
 
-# Set Prefect to use ephemeral API
-export PREFECT_API_URL="ephemeral"
-
-# Optionally disable telemetry
-export PREFECT_LOGGING_LEVEL="INFO"
+# Create .prefect directory if it doesn't exist
+mkdir -p ~/.prefect
 
 # Save to .env if it exists
 if [ -f .env ]; then
     echo "Updating .env file..."
     
-    # Remove old PREFECT_API_URL if exists
+    # Remove old PREFECT settings if they exist
     sed -i.bak '/PREFECT_API_URL/d' .env
+    sed -i.bak '/PREFECT_API_DATABASE_CONNECTION_URL/d' .env
+    sed -i.bak '/PREFECT_LOGGING_LEVEL/d' .env
     
     # Add new configuration
     echo "" >> .env
-    echo "# Prefect Configuration (ephemeral mode - no server required)" >> .env
-    echo "PREFECT_API_URL=ephemeral" >> .env
+    echo "# Prefect Configuration (local mode - no server required)" >> .env
+    echo "PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///~/.prefect/prefect.db" >> .env
+    echo "PREFECT_API_URL=" >> .env
     echo "PREFECT_LOGGING_LEVEL=INFO" >> .env
     
     echo "✅ .env file updated"
@@ -30,9 +30,13 @@ else
 fi
 
 echo ""
-echo "✅ Prefect configured for ephemeral mode!"
+echo "✅ Prefect configured for local execution!"
 echo ""
-echo "You can now run:"
+echo "To apply these settings, run:"
+echo "  source .env"
+echo "  export \$(cat .env | xargs)"
+echo ""
+echo "Or simply run commands with the settings:"
 echo "  make ingest"
 echo "  make build"
 echo "  make train"

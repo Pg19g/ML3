@@ -1,24 +1,30 @@
 # Prefect Setup Guide
 
-This guide explains how to configure Prefect to run ML3 flows without requiring a Prefect server.
+This guide explains how to configure Prefect to run ML3 flows locally without requiring a Prefect server.
 
 ---
 
 ## The Issue
 
-By default, Prefect tries to connect to a server at `http://localhost:4200/api/`. If you see this error:
+By default, Prefect tries to connect to a server. If you see errors like:
 
 ```
 RuntimeError: Failed to reach API at http://localhost:4200/api/
+```
+
+or
+
+```
+httpx.UnsupportedProtocol: Request URL is missing an 'http://' or 'https://' protocol.
 ```
 
 It means Prefect is trying to connect to a server that isn't running.
 
 ---
 
-## Solution: Ephemeral Mode
+## Solution: Local Execution Mode
 
-Prefect can run in **ephemeral mode**, which doesn't require a server. This is perfect for:
+Prefect can run in **local execution mode** using a local SQLite database, which doesn't require a server. This is perfect for:
 - Local development
 - Single-user scenarios
 - Simple workflows
@@ -33,27 +39,34 @@ Prefect can run in **ephemeral mode**, which doesn't require a server. This is p
 Run the setup script:
 
 ```bash
+cd /Users/pgalaszek/Desktop/ML3
 ./setup_prefect.sh
 ```
 
-This will:
-1. Configure Prefect to use ephemeral mode
-2. Update your `.env` file
-3. Set appropriate logging levels
+Then load the environment variables:
+
+```bash
+source .env
+export $(cat .env | xargs)
+```
 
 ### Option 2: Manual Setup
 
 1. **Update your `.env` file**:
 
+Add these lines to `.env`:
+
 ```bash
-# Add or update this line in .env
-PREFECT_API_URL=ephemeral
+PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///~/.prefect/prefect.db
+PREFECT_API_URL=
+PREFECT_LOGGING_LEVEL=INFO
 ```
 
-2. **Or set environment variable**:
+2. **Load environment variables**:
 
 ```bash
-export PREFECT_API_URL="ephemeral"
+source .env
+export $(cat .env | xargs)
 ```
 
 3. **Run your flows**:
@@ -66,13 +79,50 @@ make train
 
 ---
 
+## Alternative: Set Environment Variables Directly
+
+Instead of using `.env`, you can set environment variables directly:
+
+```bash
+export PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///~/.prefect/prefect.db"
+export PREFECT_API_URL=""
+export PREFECT_LOGGING_LEVEL="INFO"
+
+# Then run your commands
+make all
+```
+
+---
+
+## Makefile Integration
+
+The Makefile commands automatically work with the `.env` file. Just ensure `.env` is configured correctly:
+
+```bash
+# Configure once
+./setup_prefect.sh
+
+# Then use Makefile commands
+make ingest
+make build
+make train
+make backtest
+make all
+```
+
+---
+
 ## Verification
 
 To verify Prefect is configured correctly:
 
 ```bash
-# Check Prefect configuration
-python -c "from prefect import get_client; print('Prefect configured correctly!')"
+# Load environment
+source .env
+export $(cat .env | xargs)
+
+# Test import
+python -c "from prefect import flow; print('Prefect configured correctly!')"
 ```
 
 If this runs without errors, you're good to go!
@@ -96,6 +146,7 @@ This starts the server at `http://localhost:4200`
 
 ```bash
 PREFECT_API_URL=http://localhost:4200/api
+# Remove or comment out PREFECT_API_DATABASE_CONNECTION_URL
 ```
 
 ### 3. Access UI
@@ -106,11 +157,11 @@ Open browser to: http://localhost:4200
 
 ## Comparison
 
-| Feature | Ephemeral Mode | Server Mode |
-|---------|----------------|-------------|
-| Setup | None required | Start server |
+| Feature | Local Mode | Server Mode |
+|---------|------------|-------------|
+| Setup | Set env vars | Start server |
 | UI | No | Yes (http://localhost:4200) |
-| Flow history | No | Yes |
+| Flow history | Local SQLite | Full database |
 | Scheduling | No | Yes |
 | Monitoring | Console only | Full dashboard |
 | Multi-user | No | Yes |
@@ -120,24 +171,28 @@ Open browser to: http://localhost:4200
 
 ## Recommended Workflow
 
-### Development (Ephemeral)
+### Development (Local Mode)
 
 ```bash
-# Set ephemeral mode
-export PREFECT_API_URL="ephemeral"
+# Configure once
+./setup_prefect.sh
+
+# Load environment
+source .env
+export $(cat .env | xargs)
 
 # Run flows
 make all
 ```
 
-### Production (Server)
+### Production (Server Mode)
 
 ```bash
 # Start server (in separate terminal)
 prefect server start
 
-# Set server mode
-export PREFECT_API_URL="http://localhost:4200/api"
+# Set server mode in .env
+PREFECT_API_URL=http://localhost:4200/api
 
 # Run flows
 make all
@@ -149,15 +204,21 @@ make all
 
 ### Error: "Failed to reach API"
 
-**Solution**: Set ephemeral mode
+**Solution**: Set local mode
 
 ```bash
-export PREFECT_API_URL="ephemeral"
+export PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///~/.prefect/prefect.db"
+export PREFECT_API_URL=""
 ```
 
-Or update `.env`:
-```
-PREFECT_API_URL=ephemeral
+### Error: "Request URL is missing protocol"
+
+**Cause**: PREFECT_API_URL is set to an invalid value (like "ephemeral")
+
+**Solution**: Set PREFECT_API_URL to empty string
+
+```bash
+export PREFECT_API_URL=""
 ```
 
 ### Error: "Connection refused"
@@ -165,28 +226,28 @@ PREFECT_API_URL=ephemeral
 **Cause**: Trying to connect to server that isn't running
 
 **Solution**: Either:
-1. Use ephemeral mode (recommended for local dev)
+1. Use local mode (recommended for local dev)
 2. Start Prefect server: `prefect server start`
 
 ### Flows run but no UI
 
-**Cause**: Running in ephemeral mode
+**Cause**: Running in local mode
 
-**Solution**: This is expected! Ephemeral mode doesn't have a UI. If you want the UI, start the server.
+**Solution**: This is expected! Local mode doesn't have a UI. If you want the UI, start the server.
 
 ---
 
 ## Environment Variables
 
-Add these to your `.env` file:
+Add these to your `.env` file for local mode:
 
 ```bash
-# Required
-PREFECT_API_URL=ephemeral
+# Required for local mode
+PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///~/.prefect/prefect.db
+PREFECT_API_URL=
 
 # Optional
 PREFECT_LOGGING_LEVEL=INFO
-PREFECT_LOGGING_TO_API_ENABLED=false
 ```
 
 ---
@@ -196,21 +257,22 @@ PREFECT_LOGGING_TO_API_ENABLED=false
 The setup script works on Mac M3 Pro. Just run:
 
 ```bash
+cd /Users/pgalaszek/Desktop/ML3
 ./setup_prefect.sh
-```
 
-Then:
+# Load environment
+source .env
+export $(cat .env | xargs)
 
-```bash
-source .env  # Load environment variables
-make all     # Run pipeline
+# Run pipeline
+make all
 ```
 
 ---
 
 ## Summary
 
-**For most users**: Use ephemeral mode
+**For most users**: Use local mode
 - ✅ No server required
 - ✅ Simple setup
 - ✅ Works immediately
