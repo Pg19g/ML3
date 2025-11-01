@@ -16,6 +16,9 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+# Set up module logger
+logger = logging.getLogger(__name__)
+
 
 def setup_logging(name: str, level: int = logging.INFO) -> logging.Logger:
     """Set up logging configuration."""
