@@ -89,7 +89,9 @@ train:
 
 backtest:
 	@echo "Running backtest..."
-	python -m src.cli backtest run
+	@MODEL_ID=$$(ls -t models/registry/ | head -n 1) && \
+	echo "Using latest model: $$MODEL_ID" && \
+	python -m src.cli backtest run $$MODEL_ID
 
 diagnostics:
 	@echo "Running diagnostics..."
