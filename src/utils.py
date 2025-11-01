@@ -179,15 +179,26 @@ def cross_sectional_standardize(
     """
     result = df.copy()
     
+    # Filter feature_cols to only those that exist in the DataFrame
+    existing_cols = [col for col in feature_cols if col in df.columns]
+    missing_cols = [col for col in feature_cols if col not in df.columns]
+    
+    if missing_cols:
+        logger.warning(f"Skipping {len(missing_cols)} missing columns in standardization: {missing_cols[:5]}...")
+    
+    if not existing_cols:
+        logger.warning("No feature columns to standardize")
+        return result
+    
     if group_col and group_col in df.columns:
         # Standardize within groups
-        for col in feature_cols:
+        for col in existing_cols:
             result[col] = df.groupby(['date', group_col])[col].transform(
                 lambda x: (x - x.mean()) / (x.std() + 1e-8)
             )
     else:
         # Standardize across entire cross-section
-        for col in feature_cols:
+        for col in existing_cols:
             result[col] = df.groupby('date')[col].transform(
                 lambda x: (x - x.mean()) / (x.std() + 1e-8)
             )
