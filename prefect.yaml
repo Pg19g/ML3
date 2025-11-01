@@ -1,0 +1,16 @@
+# Prefect configuration for ML3
+# This configures Prefect to run in ephemeral mode (no server required)
+
+name: ml3
+
+# Use ephemeral API (no server needed)
+prefect-version: 2.14.0
+
+# Deployments (optional, for future use)
+deployments: []
+
+# Pull steps (optional)
+pull: []
+
+# Push steps (optional)
+push: []

@@ -41,7 +41,30 @@ poetry install
 # Set up environment variables
 cp .env.example .env
 # Edit .env and add your EODHD_API_KEY
+
+# Configure Prefect (IMPORTANT!)
+./setup_prefect.sh
+# Or manually add to .env: PREFECT_API_URL=ephemeral
 ```
+
+### Prefect Setup
+
+**IMPORTANT**: Before running any pipeline commands, configure Prefect to run in ephemeral mode (no server required).
+
+**Quick Setup**:
+```bash
+./setup_prefect.sh
+```
+
+**Manual Setup**:
+Add this to your `.env` file:
+```
+PREFECT_API_URL=ephemeral
+```
+
+For detailed instructions, see [PREFECT_SETUP.md](PREFECT_SETUP.md).
+
+**Why?** By default, Prefect tries to connect to a server. Ephemeral mode runs flows locally without a server, which is perfect for development.
 
 ### Basic Usage
 

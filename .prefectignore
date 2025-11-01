@@ -1,0 +1,40 @@
+# Prefect ignore file
+# Files and directories to ignore when deploying flows
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Data
+data/
+*.parquet
+*.csv
+*.json
+
+# Models
+models/
+*.joblib
+*.pkl
+
+# Reports
+reports/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
