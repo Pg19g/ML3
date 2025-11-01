@@ -57,7 +57,7 @@ export $(cat .env | xargs)
 Add these lines to `.env`:
 
 ```bash
-PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///~/.prefect/prefect.db
+PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///$HOME/.prefect/prefect.db
 PREFECT_API_URL=
 PREFECT_LOGGING_LEVEL=INFO
 ```
@@ -84,7 +84,7 @@ make train
 Instead of using `.env`, you can set environment variables directly:
 
 ```bash
-export PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///~/.prefect/prefect.db"
+export PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///$HOME/.prefect/prefect.db"
 export PREFECT_API_URL=""
 export PREFECT_LOGGING_LEVEL="INFO"
 
@@ -207,7 +207,7 @@ make all
 **Solution**: Set local mode
 
 ```bash
-export PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///~/.prefect/prefect.db"
+export PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///$HOME/.prefect/prefect.db"
 export PREFECT_API_URL=""
 ```
 
@@ -243,7 +243,7 @@ Add these to your `.env` file for local mode:
 
 ```bash
 # Required for local mode
-PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///~/.prefect/prefect.db
+PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///$HOME/.prefect/prefect.db
 PREFECT_API_URL=
 
 # Optional

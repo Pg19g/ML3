@@ -62,7 +62,7 @@ export $(cat .env | xargs)
 **Manual Setup**:
 Add these to your `.env` file:
 ```
-PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///~/.prefect/prefect.db
+PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///$HOME/.prefect/prefect.db
 PREFECT_API_URL=
 PREFECT_LOGGING_LEVEL=INFO
 ```

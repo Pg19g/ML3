@@ -1,19 +1,15 @@
-# Quick Fix for Prefect Connection Error
+# Quick Fix for Prefect Database Path Error
 
 ## The Problem
 
 You saw this error:
 ```
-RuntimeError: Failed to reach API at ephemeral/
+sqlite3.OperationalError: unable to open database file
 ```
 
-or
+This happens because the tilde (`~`) in the database path isn't being expanded.
 
-```
-httpx.UnsupportedProtocol: Request URL is missing an 'http://' or 'https://' protocol.
-```
-
-## The Solution (2 minutes)
+## The Solution (1 minute)
 
 ### Step 1: Run Setup Script
 
@@ -21,6 +17,8 @@ httpx.UnsupportedProtocol: Request URL is missing an 'http://' or 'https://' pro
 cd /Users/pgalaszek/Desktop/ML3
 ./setup_prefect.sh
 ```
+
+This will automatically create the correct path with your home directory.
 
 ### Step 2: Load Environment Variables
 
@@ -50,24 +48,33 @@ cd /Users/pgalaszek/Desktop/ML3
 nano .env  # or use your preferred editor
 ```
 
-### 2. Add these lines
+### 2. Add these lines (replace /Users/pgalaszek with your actual home directory)
 
 ```
-PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:///~/.prefect/prefect.db
+PREFECT_API_DATABASE_CONNECTION_URL=sqlite+aiosqlite:////Users/pgalaszek/.prefect/prefect.db
 PREFECT_API_URL=
 PREFECT_LOGGING_LEVEL=INFO
 ```
 
-**Important**: `PREFECT_API_URL` should be set to empty (nothing after the `=`)
+**Important**: 
+- Use **4 slashes** after `sqlite+aiosqlite:` (one for protocol, three for absolute path)
+- Use your **actual home directory path** (not `~`)
+- `PREFECT_API_URL` should be empty (nothing after the `=`)
 
-### 3. Save and load
+### 3. Create the directory
+
+```bash
+mkdir -p ~/.prefect
+```
+
+### 4. Save and load
 
 ```bash
 source .env
 export $(cat .env | xargs)
 ```
 
-### 4. Run
+### 5. Run
 
 ```bash
 make all
@@ -78,17 +85,17 @@ make all
 ## One-Liner Fix
 
 ```bash
-cd /Users/pgalaszek/Desktop/ML3 && export PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:///~/.prefect/prefect.db" && export PREFECT_API_URL="" && make all
+cd /Users/pgalaszek/Desktop/ML3 && mkdir -p ~/.prefect && export PREFECT_API_DATABASE_CONNECTION_URL="sqlite+aiosqlite:////Users/pgalaszek/.prefect/prefect.db" && export PREFECT_API_URL="" && make all
 ```
 
 ---
 
 ## What This Does
 
-- Configures Prefect to use a local SQLite database
-- Disables API server connection (sets `PREFECT_API_URL` to empty)
+- Creates `.prefect` directory in your home folder
+- Configures Prefect to use a local SQLite database with absolute path
+- Disables API server connection
 - Flows run locally without a server
-- Perfect for development and testing
 
 ---
 
@@ -97,6 +104,9 @@ cd /Users/pgalaszek/Desktop/ML3 && export PREFECT_API_DATABASE_CONNECTION_URL="s
 Test if it's working:
 
 ```bash
+# Check if directory exists
+ls -la ~/.prefect
+
 # Load environment
 source .env
 export $(cat .env | xargs)
@@ -106,6 +116,16 @@ python -c "from prefect import flow; print('Success!')"
 ```
 
 If no errors, you're good!
+
+---
+
+## Why This Happened
+
+SQLite doesn't expand the tilde (`~`) character to your home directory. You need to use either:
+1. The `$HOME` environment variable
+2. The absolute path (e.g., `/Users/pgalaszek/`)
+
+The setup script automatically detects your home directory and creates the correct path.
 
 ---
 
