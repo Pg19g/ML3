@@ -49,6 +49,9 @@ def fetch_prices(
     
     df = client.get_bulk_prices(symbols, start_date, end_date)
     
+    # Normalize column names immediately to lowercase
+    df = df.rename(columns={'Date': 'date', 'Symbol': 'symbol'})
+    
     logger.info(f"Fetched {len(df)} price rows")
     return df
 
@@ -62,10 +65,10 @@ def merge_with_existing(new_data: pd.DataFrame, file_path: str) -> pd.DataFrame:
         logger.info("No existing data, using new data only")
         return new_data
     
-    # Combine and deduplicate
+    # Combine and deduplicate (use lowercase column names)
     combined = pd.concat([existing_df, new_data], ignore_index=True)
-    combined = combined.drop_duplicates(subset=['Date', 'Symbol'], keep='last')
-    combined = combined.sort_values(['Date', 'Symbol']).reset_index(drop=True)
+    combined = combined.drop_duplicates(subset=['date', 'symbol'], keep='last')
+    combined = combined.sort_values(['date', 'symbol']).reset_index(drop=True)
     
     logger.info(f"Merged data: {len(existing_df)} existing + {len(new_data)} new = {len(combined)} total")
     return combined
@@ -74,8 +77,12 @@ def merge_with_existing(new_data: pd.DataFrame, file_path: str) -> pd.DataFrame:
 @task(name="save_prices")
 def save_prices(df: pd.DataFrame, file_path: str) -> None:
     """Save prices to parquet file."""
-    # Rename columns to standard format
-    df = df.rename(columns={'Date': 'date', 'Symbol': 'symbol'})
+    # Column names should already be lowercase from fetch_prices
+    # But ensure consistency just in case
+    if 'Date' in df.columns:
+        df = df.rename(columns={'Date': 'date'})
+    if 'Symbol' in df.columns:
+        df = df.rename(columns={'Symbol': 'symbol'})
     
     save_parquet(df, file_path, index=False)
     logger.info(f"Saved {len(df)} rows to {file_path}")
