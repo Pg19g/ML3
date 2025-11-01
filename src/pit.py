@@ -55,6 +55,10 @@ class PITProcessor:
         """
         result = df.copy()
         
+        # Handle empty DataFrame
+        if result.empty:
+            return result
+        
         # Determine lag based on statement type
         result['lag_days'] = result['statement_type'].map({
             'quarterly': self.q_lag_days,
