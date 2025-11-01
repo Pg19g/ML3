@@ -152,18 +152,30 @@ class ModelTrainer:
         valid_mask = df[label_col].notna()
         df_valid = df[valid_mask].copy()
         
+        # Filter feature_cols to only include columns that exist in df
+        available_features = [col for col in feature_cols if col in df_valid.columns]
+        missing_features = [col for col in feature_cols if col not in df_valid.columns]
+        
+        if missing_features:
+            logger.warning(f"Skipping {len(missing_features)} missing feature columns: {missing_features[:5]}...")
+        
+        if not available_features:
+            raise ValueError("No feature columns available in the dataset")
+        
+        logger.info(f"Using {len(available_features)} available features (out of {len(feature_cols)} requested)")
+        
         # Remove rows with too many missing features
-        feature_missing = df_valid[feature_cols].isna().sum(axis=1)
-        max_missing = len(feature_cols) * 0.5
+        feature_missing = df_valid[available_features].isna().sum(axis=1)
+        max_missing = len(available_features) * 0.5
         df_valid = df_valid[feature_missing < max_missing]
         
-        X = df_valid[feature_cols].copy()
+        X = df_valid[available_features].copy()
         y = df_valid[label_col].copy()
         
         # Fill remaining missing values with median
         X = X.fillna(X.median())
         
-        logger.info(f"Prepared data: {len(X)} samples, {len(feature_cols)} features")
+        logger.info(f"Prepared data: {len(X)} samples, {len(available_features)} features")
         return X, y
     
     def train_lightgbm(
