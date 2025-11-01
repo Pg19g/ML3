@@ -62,7 +62,8 @@ class PITProcessor:
         # Determine lag based on statement type
         result['lag_days'] = result['statement_type'].map({
             'quarterly': self.q_lag_days,
-            'yearly': self.y_lag_days
+            'yearly': self.y_lag_days,
+            'annual': self.y_lag_days  # Handle 'annual' as synonym for 'yearly'
         })
         
         # Calculate initial as_of_date
