@@ -45,14 +45,26 @@ def generate_predictions(
     metadata = model_info['metadata']
     feature_cols = metadata['feature_cols']
     
+    # Filter feature_cols to only include columns that exist in data
+    available_features = [col for col in feature_cols if col in data.columns]
+    missing_features = [col for col in feature_cols if col not in data.columns]
+    
+    if missing_features:
+        logger.warning(f"Skipping {len(missing_features)} missing feature columns: {missing_features[:5]}...")
+    
+    if not available_features:
+        raise ValueError("No feature columns available in the dataset")
+    
+    logger.info(f"Using {len(available_features)} available features (out of {len(feature_cols)} requested)")
+    
     # Filter to rows with valid features
-    valid_mask = data[feature_cols].notna().all(axis=1)
+    valid_mask = data[available_features].notna().all(axis=1)
     data_valid = data[valid_mask].copy()
     
     logger.info(f"Generating predictions for {len(data_valid)} rows")
     
     # Score
-    predictions = registry.score_model(model_id, data_valid[feature_cols])
+    predictions = registry.score_model(model_id, data_valid[available_features])
     data_valid['prediction'] = predictions
     
     return data_valid
